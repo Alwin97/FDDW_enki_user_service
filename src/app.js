@@ -3,11 +3,13 @@ const express = require("express");
 const cors = require("cors");
 const mongoose = require('mongoose');
 const User = require('./models/user')
+const bodyParser = require('body-parser')
+const { uuid: uuidv4 } = require('uuid');
 
 // creating express server
 const app = express();
 // parse requests of content-type - application/x-www-form-urlencoded
-app.use(express.urlencoded({extended: true}));
+app.use(bodyParser.json())
 // setting cors options
 const corsOptions = {
   origin: "http://localhost:8081"
@@ -29,13 +31,13 @@ mongoose.connect(databaseUri)
 
 // post route to create an user that checks if email already exists
 app.post('/user', (req, res) => {
-  User.exists({email: req.query.email}, (err, result) => {
+  User.exists({email: req.body.email}, (err, result) => {
     if (err) {
       console.log(err);
     } else if (!!result === true) {
       res.status(400).json({status: 400, message: 'user already exists'});
     } else {
-      new User(req.query).save()
+      new User(req.body).save()
         .then(() => {
           res.status(200).json({status: 200, message: 'user was created'});
         })
@@ -43,6 +45,10 @@ app.post('/user', (req, res) => {
     }
   })
 });
+
+app.post('/login', (req, res) => {
+  console.log(User.findOne({email: req.query.email, password: req.query.password}));
+})
 
 // simple route
 app.get("/users", (req, res) => {
