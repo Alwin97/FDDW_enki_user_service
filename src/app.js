@@ -27,13 +27,21 @@ mongoose.connect(databaseUri)
   })
   .catch(err => console.log(err));
 
-// post route to create an user
+// post route to create an user that checks if email already exists
 app.post('/user', (req, res) => {
-  new User(req.query).save()
-    .then(() => {
-      res.status(200).json({status: 200, message: 'user was created'})
-    })
-    .catch(err => console.log(err));
+  User.exists({email: req.query.email}, (err, result) => {
+    if (err) {
+      console.log(err);
+    } else if (!!result === true) {
+      res.status(400).json({status: 400, message: 'user already exists'});
+    } else {
+      new User(req.query).save()
+        .then(() => {
+          res.status(200).json({status: 200, message: 'user was created'});
+        })
+        .catch(err => console.log(err));
+    }
+  })
 });
 
 // simple route
