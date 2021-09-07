@@ -58,6 +58,18 @@ app.delete('/user', authenticateToken, (req, res) => {
   })
 })
 
+// function that updates specific parameters of the user
+app.patch('/user', authenticateToken, (req, res) => {
+  User.findOneAndUpdate({email: req.user.email}, { ...req.body }, {}, (err, result) => {
+    if (err) {
+      console.log(err);
+      res.sendStatus(500);
+    } else {
+      res.status(205);
+    }
+  })
+})
+
 // funtion that logs in an user after checking if credentials are correct. It also creates an JWT Token for authentication
 // and returns an refresh token to refresh the JWT authentication token
 app.post('/login', (req, res) => {
@@ -114,9 +126,13 @@ function authenticateToken(req, res, next) {
   if (token == null) res.sendStatus(401);
   else {
     jwt.verify(token, jwtSecret, (err, user) => {
-      if (err) console.log(err);
-      req.user = user;
-      next();
+      if (err) {
+        console.log(err);
+        res.sendStatus(403);
+      } else {
+        req.user = user;
+        next();
+      }
     })
   }
 }
