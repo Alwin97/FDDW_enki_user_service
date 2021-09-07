@@ -103,8 +103,8 @@ app.post('/refresh', (req, res) => {
     } else {
       jwt.verify(refreshToken, refreshTokenSecret, (err, user) => {
         if (err) return res.sendStatus(403)
-        const accessToken = generateAccessToken(new User(user).toJSON())
-        res.json({accessToken: accessToken})
+        const token = generateAccessToken(new User(user).toJSON())
+        res.json({token})
       })
     }
   });
