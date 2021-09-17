@@ -27,7 +27,7 @@ const userSchema = new Schema({
     required: true
   },
   country_code: {
-    type: Number,
+    type: String,
     required: true
   },
   country: {

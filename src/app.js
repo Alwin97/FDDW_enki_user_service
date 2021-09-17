@@ -13,7 +13,7 @@ const app = express();
 app.use(bodyParser.json())
 // setting cors options
 const corsOptions = {
-  origin: "http://localhost:8081"
+  origin: "https://enki-bookstore.herokuapp.com/"
 };
 app.use(cors(corsOptions));
 // set port to listen for requests
@@ -82,32 +82,13 @@ app.post('/login', (req, res) => {
       // create jwt, store it and send it back to the user with the user id
       const tempUser = User.findOne({email: req.body.email, password: req.body.password}).exec()
         .then(user => {
-          const token = generateAccessToken(user.toJSON());
-          const refreshToken = jwt.sign(user.toJSON(), refreshTokenSecret, {expiresIn: '30d'});
-          user.password = null;
-          new Token({token: refreshToken}).save().then(() => {
-            res.json({token, refreshToken, user});
+          generateAccessToken(user.toJSON()).then(token => {
+            user.password = null;
+            res.status(200).json({token})
           });
         });
     }
   })
-})
-
-// funtion to generate an new authentication Token if valid refresh token is supplied
-app.post('/refresh', (req, res) => {
-  const refreshToken = req.body.token
-  if (refreshToken == null) return res.sendStatus(401)
-  Token.exists({token: refreshToken}, (err, token) => {
-    if (!!token === false) {
-      return res.sendStatus(403);
-    } else {
-      jwt.verify(refreshToken, refreshTokenSecret, (err, user) => {
-        if (err) return res.sendStatus(403)
-        const token = generateAccessToken(new User(user).toJSON())
-        res.json({token})
-      })
-    }
-  });
 })
 
 // funtion that logs out an user -> deletes refresh token in database
@@ -116,6 +97,11 @@ app.delete('/logout', (req, res) => {
     if (err) console.log(err);
     res.sendStatus(204);
   });
+})
+
+// function taht returns if user is logged in
+app.post('/checkLogin', authenticateToken, (req, res) => {
+  res.status(200).json({checkLogin: true, user: req.user})
 })
 
 // function that is used to verify is the user is logged in/ has verification
@@ -128,7 +114,7 @@ function authenticateToken(req, res, next) {
     jwt.verify(token, jwtSecret, (err, user) => {
       if (err) {
         console.log(err);
-        res.sendStatus(403);
+        res.sendStatus(403).json({checkLogin: false});
       } else {
         req.user = user;
         next();
@@ -138,6 +124,6 @@ function authenticateToken(req, res, next) {
 }
 
 // function to generate an acces token
-function generateAccessToken(user) {
-  return jwt.sign(user, jwtSecret, {expiresIn: '5m'});
+async function generateAccessToken(user) {
+  return await jwt.sign(user, jwtSecret, {expiresIn: '30d'});
 }
