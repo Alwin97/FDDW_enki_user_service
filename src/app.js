@@ -13,7 +13,7 @@ const app = express();
 app.use(bodyParser.json())
 // setting cors options
 const corsOptions = {
-  origin: "https://enki-bookstore.herokuapp.com/"
+  origin: ["https://enki-bookstore.herokuapp.com/"," https://enki-cart.herokuapp.com/"]
 };
 app.use(cors(corsOptions));
 // set port to listen for requests
