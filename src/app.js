@@ -13,7 +13,7 @@ const app = express();
 app.use(bodyParser.json())
 // setting cors options
 const corsOptions = {
-  origin: ["https://enki-bookstore.herokuapp.com/"," https://enki-cart.herokuapp.com/"]
+  origin: ["https://enki-bookstore.herokuapp.com"," https://enki-cart.herokuapp.com"]
 };
 app.use(cors(corsOptions));
 // set port to listen for requests
@@ -106,15 +106,14 @@ app.post('/checkLogin', authenticateToken, (req, res) => {
 
 // function that is used to verify is the user is logged in/ has verification
 function authenticateToken(req, res, next) {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-
+  const token = req.headers['authorization'];
+  
   if (token == null) res.sendStatus(401);
   else {
     jwt.verify(token, jwtSecret, (err, user) => {
       if (err) {
         console.log(err);
-        res.sendStatus(403).json({checkLogin: false});
+        res.status(403).json({checkLogin: false});
       } else {
         req.user = user;
         next();
